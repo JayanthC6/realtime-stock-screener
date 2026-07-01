@@ -1,17 +1,17 @@
 # Real-Time Stock Screener & Alert Engine
 
-A production-grade real-time stock screening platform built with Spring Boot, Redis Pub/Sub, WebSockets, React, and PostgreSQL — designed to analyze 500+ stocks against configurable screening indicators and deliver instant alerts to users.
+A production-grade real-time stock screening platform built with Spring Boot, Redis Pub/Sub, WebSockets, React, and PostgreSQL - designed to analyze 500+ stocks against configurable screening indicators and deliver instant alerts to users.
 
 ---
 
 ## What This Project Does
 
-Most stock screeners are static — you refresh the page to see updated data. This platform is different:
+Most stock screeners are static - you refresh the page to see updated data. This platform is different:
 
 - **Live stock prices** stream from Finnhub WebSocket feed into the backend
 - **Screening engine** evaluates every stock against P/E Ratio, RSI, and Volume indicators every 5 seconds
 - **Alert engine** checks user-configured rules on every market refresh and pushes instant notifications
-- **React dashboard** updates in real-time via WebSocket — no page refresh needed
+- **React dashboard** updates in real-time via WebSocket - no page refresh needed
 
 ---
 
@@ -49,13 +49,13 @@ history)            WebSocket)
 ### Live Stock Dashboard
 - Real-time price updates for 500+ US stocks via Finnhub WebSocket
 - Price, volume, and percentage change displayed live
-- No polling — pure WebSocket push from server to browser
+- No polling - pure WebSocket push from server to browser
 
 ### Screening Engine
 Evaluates 3 configurable indicators every 5 seconds:
-- **P/E Ratio** — filters overvalued or undervalued stocks
-- **RSI (14-period)** — identifies overbought (>70) or oversold (<30) conditions
-- **Volume** — flags unusual trading activity against average volume
+- **P/E Ratio** - filters overvalued or undervalued stocks
+- **RSI (14-period)** - identifies overbought (>70) or oversold (<30) conditions
+- **Volume** - flags unusual trading activity against average volume
 
 ### Alert Engine
 - Users configure personalized alert rules (e.g. "Alert me when AAPL RSI > 70")
@@ -78,11 +78,11 @@ Evaluates 3 configurable indicators every 5 seconds:
 
 ## What You'll See When You Run It
 
-1. **Login/Register** — JWT secured auth screen
-2. **Live Dashboard** — Stock prices ticking in real-time on screen
-3. **Screener Tab** — Table of stocks filtered by P/E, RSI, Volume thresholds you set
-4. **Alerts Tab** — Configure your alert rules, watch notifications appear instantly when triggered
-5. **Alert History** — Log of every alert that was triggered with timestamp
+1. **Login/Register** - JWT secured auth screen
+2. **Live Dashboard** - Stock prices ticking in real-time on screen
+3. **Screener Tab** - Table of stocks filtered by P/E, RSI, Volume thresholds you set
+4. **Alerts Tab** - Configure your alert rules, watch notifications appear instantly when triggered
+5. **Alert History** - Log of every alert that was triggered with timestamp
 
 ---
 
@@ -160,3 +160,29 @@ docker-compose up --build
 finnhub.api.key=your_finnhub_api_key
 spring.datasource.password=yourpassword
 jwt.secret=your_jwt_secret
+
+### Frontend (`.env`)
+VITE_API_BASE_URL=http://localhost:8080
+VITE_WS_URL=ws://localhost:8080/ws
+---
+
+## Key Engineering Decisions
+
+**Why Redis Pub/Sub?**
+Decouples the Finnhub data ingestion layer from the screening and alert engine. If the screener is slow, it doesn't block incoming market data.
+
+**Why WebSocket over polling?**
+Polling every second for 500+ stocks is wasteful and creates unnecessary DB load. WebSocket push means the client only receives data when something actually changes.
+
+**Why calculate RSI in-house?**
+Finnhub free tier doesn't provide RSI. Calculating 14-period RSI from price history gives full control over the indicator logic and avoids paid API dependency.
+
+---
+
+## Resume Highlights This Project Demonstrates
+- Real-time event-driven architecture (WebSocket + Redis Pub/Sub)
+- Spring Boot backend with async processing and scheduled jobs
+- JWT-secured REST APIs with Spring Security
+- PostgreSQL-backed rule management and alert history
+- Live React dashboard with WebSocket integration
+- Docker Compose for multi-container orchestration
