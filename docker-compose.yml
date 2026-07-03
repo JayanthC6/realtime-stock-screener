@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: stockscreener-postgres
+    environment:
+      POSTGRES_DB: stockscreener
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: stockscreener-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:

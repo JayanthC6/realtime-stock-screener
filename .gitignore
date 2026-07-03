@@ -1,7 +1,6 @@
 # Backend
 backend/target/
 backend/.env
-backend/src/main/resources/application-local.properties
 *.class
 *.jar
 *.war
@@ -20,5 +19,6 @@ frontend/.env
 .DS_Store
 Thumbs.db
 
-# Docker
+# Environment
+.env
 docker-compose.override.yml
