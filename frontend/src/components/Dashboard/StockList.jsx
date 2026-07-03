@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAllStocks } from '../../services/api'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { Activity, TrendingUp, TrendingDown } from 'lucide-react'
 
 function StockList({ liveStocks }) {
   const [stocks, setStocks] = useState([])
