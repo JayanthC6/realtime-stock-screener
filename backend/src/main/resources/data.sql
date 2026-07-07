@@ -1,0 +1,1 @@
+ALTER TABLE price_history ALTER COLUMN symbol TYPE VARCHAR(255);

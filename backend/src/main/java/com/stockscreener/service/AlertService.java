@@ -3,6 +3,8 @@ package com.stockscreener.service;
 import com.stockscreener.dto.AlertHistoryDto;
 import com.stockscreener.dto.AlertRuleRequest;
 import com.stockscreener.dto.AlertRuleResponse;
+import com.stockscreener.exception.ResourceNotFoundException;
+import com.stockscreener.exception.UnauthorizedException;
 import com.stockscreener.model.AlertHistory;
 import com.stockscreener.model.AlertRule;
 import com.stockscreener.model.User;
@@ -56,10 +58,10 @@ public class AlertService {
     public void deleteAlertRule(Long id) {
         User user = getCurrentUser();
         AlertRule alertRule = alertRuleRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Alert rule not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("AlertRule", "id", id));
 
         if (!alertRule.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized to delete this alert rule");
+            throw new UnauthorizedException("You do not own this alert rule");
         }
 
         alertRule.setActive(false);
@@ -87,7 +89,7 @@ public class AlertService {
         String email = SecurityContextHolder.getContext()
                 .getAuthentication().getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
     }
 
     private AlertRuleResponse mapToAlertRuleResponse(AlertRule alertRule) {

@@ -19,6 +19,12 @@ export const connectWebSocket = (onStockUpdate, onScreenerUpdate, onAlertUpdate,
         onScreenerUpdate(data)
       })
 
+      // Subscribe to all live stock updates
+      client.subscribe('/topic/stocks', (message) => {
+        const data = JSON.parse(message.body)
+        onStockUpdate(data)
+      })
+
       // Subscribe to personal alert notifications
       if (userEmail) {
         client.subscribe(`/user/${userEmail}/queue/alerts`, (message) => {

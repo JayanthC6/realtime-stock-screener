@@ -29,7 +29,7 @@ public class StockDataSubscriber implements MessageListener {
             StockDataDto stockDataDto = objectMapper.readValue(body, StockDataDto.class);
 
             // Push live price update to React frontend via WebSocket
-            messagingTemplate.convertAndSend("/topic/stocks/" + stockDataDto.getSymbol(), stockDataDto);
+            messagingTemplate.convertAndSend("/topic/stocks", stockDataDto);
 
             // Run screening engine
             screeningEngine.screen(stockDataDto);

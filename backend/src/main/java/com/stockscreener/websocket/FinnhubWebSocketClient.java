@@ -15,51 +15,56 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class FinnhubWebSocketClient {
 
-    private static final int MAX_SYMBOLS_PER_CONNECTION = 20;
-
     private final FinnhubConfig finnhubConfig;
     private final ObjectMapper objectMapper;
     private final StockDataPublisher stockDataPublisher;
     private final StockDataService stockDataService;
 
-    private final List<WebSocketClient> webSocketClients = new CopyOnWriteArrayList<>();
-    private volatile boolean shuttingDown;
+    private volatile WebSocketClient webSocketClient;
+    private volatile boolean shuttingDown = false;
+    private volatile long reconnectDelaySeconds = 5;
+
     private final ScheduledExecutorService reconnectScheduler =
             Executors.newSingleThreadScheduledExecutor();
 
     @PostConstruct
     public void connect() {
-        List<String> symbols = List.of(finnhubConfig.getStockSymbolsArray());
-        for (int i = 0; i < symbols.size(); i += MAX_SYMBOLS_PER_CONNECTION) {
-            connectBatch(new ArrayList<>(symbols.subList(i, Math.min(i + MAX_SYMBOLS_PER_CONNECTION, symbols.size()))));
-        }
+        reconnectDelaySeconds = 5;
+        connectSingle();
     }
 
-    private void connectBatch(List<String> symbolsBatch) {
+    private void connectSingle() {
+        if (shuttingDown) return;
+
+        List<String> symbols = List.of(finnhubConfig.getStockSymbolsArray());
+        log.info("Connecting to Finnhub WebSocket for {} symbols...", symbols.size());
+
         try {
-            String url = finnhubConfig.getWebsocketUrl()
-                    + "?token=" + finnhubConfig.getApiKey();
+            String url = finnhubConfig.getWebsocketUrl() + "?token=" + finnhubConfig.getApiKey();
 
-            final WebSocketClient[] clientHolder = new WebSocketClient[1];
+            final WebSocketClient[] holder = new WebSocketClient[1];
 
-            clientHolder[0] = new WebSocketClient(new URI(url)) {
+            holder[0] = new WebSocketClient(new URI(url)) {
 
                 @Override
                 public void onOpen(ServerHandshake handshake) {
-                    log.info("Connected to Finnhub WebSocket");
-                    subscribeToStocks(clientHolder[0], symbolsBatch);
+                    log.info("Connected to Finnhub WebSocket — subscribing to {} symbols", symbols.size());
+                    reconnectDelaySeconds = 5; // reset backoff on successful connect
+                    for (String symbol : symbols) {
+                        send("{\"type\":\"subscribe\",\"symbol\":\"" + symbol + "\"}");
+                        log.debug("Subscribed to: {}", symbol);
+                    }
+                    log.info("All {} symbols subscribed on single connection", symbols.size());
                 }
 
                 @Override
@@ -70,8 +75,14 @@ public class FinnhubWebSocketClient {
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
                     log.warn("Finnhub WebSocket closed: {} - {}", code, reason);
-                    if (!shuttingDown && (reason == null || !reason.contains("429"))) {
-                        scheduleReconnect(symbolsBatch);
+                    if (!shuttingDown) {
+                        if (reason != null && reason.contains("429")) {
+                            log.warn("Rate-limited (429) — waiting 60s before reconnect");
+                            scheduleReconnect(60);
+                        } else {
+                            scheduleReconnect(reconnectDelaySeconds);
+                            reconnectDelaySeconds = Math.min(reconnectDelaySeconds * 2, 60);
+                        }
                     }
                 }
 
@@ -81,21 +92,14 @@ public class FinnhubWebSocketClient {
                 }
             };
 
-            webSocketClients.add(clientHolder[0]);
-            clientHolder[0].connect();
+            webSocketClient = holder[0];
+            webSocketClient.connect();
+
         } catch (Exception e) {
             log.error("Failed to connect to Finnhub: {}", e.getMessage());
-            scheduleReconnect(symbolsBatch);
+            scheduleReconnect(reconnectDelaySeconds);
+            reconnectDelaySeconds = Math.min(reconnectDelaySeconds * 2, 60);
         }
-    }
-
-    private void subscribeToStocks(WebSocketClient client, List<String> symbols) {
-        for (String symbol : symbols) {
-            String subscribeMessage = "{\"type\":\"subscribe\",\"symbol\":\"" + symbol + "\"}";
-            client.send(subscribeMessage);
-            log.debug("Subscribed to: {}", symbol);
-        }
-        log.info("Subscribed to {} stocks in batch", symbols.size());
     }
 
     private void handleMessage(String message) {
@@ -107,14 +111,11 @@ public class FinnhubWebSocketClient {
             }
 
             for (FinnhubTradeDto.TradeData trade : tradeDto.getData()) {
-                // Update stock data in DB and get enriched DTO
                 StockDataDto stockDataDto = stockDataService.updateStockPrice(
                         trade.getSymbol(),
                         trade.getPrice(),
                         trade.getVolume().longValue()
                 );
-
-                // Publish to Redis Pub/Sub
                 stockDataPublisher.publish(stockDataDto);
             }
         } catch (Exception e) {
@@ -122,18 +123,16 @@ public class FinnhubWebSocketClient {
         }
     }
 
-    private void scheduleReconnect(List<String> symbolsBatch) {
-        log.info("Scheduling reconnect in 5 seconds...");
-        reconnectScheduler.schedule(() -> connectBatch(new ArrayList<>(symbolsBatch)), 5, TimeUnit.SECONDS);
+    private void scheduleReconnect(long delaySeconds) {
+        log.info("Scheduling reconnect in {}s...", delaySeconds);
+        reconnectScheduler.schedule(this::connectSingle, delaySeconds, TimeUnit.SECONDS);
     }
 
     @PreDestroy
     public void disconnect() {
         shuttingDown = true;
-        for (WebSocketClient webSocketClient : webSocketClients) {
-            if (webSocketClient != null && webSocketClient.isOpen()) {
-                webSocketClient.close();
-            }
+        if (webSocketClient != null && webSocketClient.isOpen()) {
+            webSocketClient.close();
         }
         reconnectScheduler.shutdown();
     }

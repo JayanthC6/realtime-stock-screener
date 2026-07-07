@@ -24,8 +24,9 @@ export const register = (data) => api.post('/api/auth/register', data)
 export const login = (data) => api.post('/api/auth/login', data)
 
 // Stock APIs
-export const getAllStocks = () => api.get('/api/stocks')
+export const getAllStocks = () => api.get('/api/stocks/all')
 export const getStockBySymbol = (symbol) => api.get(`/api/stocks/${symbol}`)
+export const getStockHistory = (symbol, hours = 1) => api.get(`/api/stocks/${symbol}/history?hours=${hours}`)
 export const getScreenerResults = () => api.get('/api/stocks/screener/results')
 export const getTriggeredResults = () => api.get('/api/stocks/screener/triggered')
 

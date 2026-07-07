@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockDataDto {
+public class StockDataDto implements java.io.Serializable {
     private String symbol;
     private Double currentPrice;
     private Double previousClose;
