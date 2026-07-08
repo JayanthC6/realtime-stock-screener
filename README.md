@@ -175,7 +175,7 @@ Test coverage:
 - **Price History Table** — Every tick is persisted; use `/history?hours=N` for chart data
 - **Redis Caching** — 5-second TTL on individual stock reads reduces DB load
 - **Real-time Screener** — Evaluates RSI overbought/oversold, volume spikes, P/E ratio on every tick
-- **User Alerts** — Configure custom alert rules, notified via WebSocket
+- **User Alerts** — Configure custom alert rules, notified via WebSocket and Email
 - **JWT Auth** — Stateless authentication, all user-specific APIs secured
 - **Swagger UI** — Full interactive API documentation with bearer auth
 
