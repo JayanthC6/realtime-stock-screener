@@ -23,10 +23,10 @@ public class ScreeningEngine {
     private final Map<String, ScreenerResultDto> screenerResults = new ConcurrentHashMap<>();
 
     // Configurable thresholds
-    private static final double PE_RATIO_THRESHOLD = 25.0;
+    private static final double PE_RATIO_THRESHOLD = 15.0;
     private static final double RSI_OVERBOUGHT = 70.0;
     private static final double RSI_OVERSOLD = 30.0;
-    private static final long VOLUME_SPIKE_THRESHOLD = 1_000_000L;
+    private static final long VOLUME_SPIKE_THRESHOLD = 0L;
 
     public void screen(StockDataDto stockDataDto) {
         ScreenerResultDto result = evaluate(stockDataDto);

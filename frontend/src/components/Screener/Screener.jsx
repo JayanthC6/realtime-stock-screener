@@ -53,7 +53,7 @@ function Screener({ screenerUpdates }) {
     { id: 'all', label: 'All Stocks' },
     { id: 'rsi_overbought', label: 'RSI Overbought (>70)' },
     { id: 'rsi_oversold', label: 'RSI Oversold (<30)' },
-    { id: 'pe_alert', label: 'High P/E (>25)' },
+    { id: 'pe_alert', label: 'High P/E (>15)' },
     { id: 'volume_spike', label: 'Volume Spike' },
   ]
 

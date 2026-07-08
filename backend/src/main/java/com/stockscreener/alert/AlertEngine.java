@@ -20,6 +20,7 @@ public class AlertEngine {
 
     private final AlertService alertService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.stockscreener.service.EmailService emailService;
 
     public void evaluate(StockDataDto stockDataDto) {
         // Get all active rules for this symbol
@@ -59,6 +60,10 @@ public class AlertEngine {
                         "/queue/alerts",
                         message
                 );
+
+                // Send email notification
+                String subject = "FinVeda Alert: " + rule.getSymbol();
+                emailService.sendAlertEmail(rule.getUser().getEmail(), subject, message);
 
                 log.info("Alert triggered: {}", message);
             }

@@ -80,6 +80,10 @@ public class StockDataService {
         if (stockData.getLow() == null || price < stockData.getLow()) {
             stockData.setLow(price);
         }
+        if (stockData.getPeRatio() == null) {
+            // Mock P/E between 10 and 40 for screener demonstration
+            stockData.setPeRatio(10.0 + Math.random() * 30.0);
+        }
 
         // 6. Update snapshot
         stockData.setCurrentPrice(price);
