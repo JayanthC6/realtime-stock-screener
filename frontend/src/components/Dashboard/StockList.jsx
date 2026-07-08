@@ -1,12 +1,68 @@
 import { useEffect, useState } from 'react'
 import { getAllStocks } from '../../services/api'
-import { Activity, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react'
+import { Activity, TrendingUp, TrendingDown, ChevronRight, Filter } from 'lucide-react'
 import StockDetailModal from './StockDetailModal'
+import { formatPrice } from '../../utils/currency'
 
-function StockList({ liveStocks, globalSearch }) {
+const DOMAIN_MAP = {
+  AAPL: 'apple.com', MSFT: 'microsoft.com', GOOGL: 'abc.xyz', AMZN: 'amazon.com',
+  TSLA: 'tesla.com', META: 'meta.com', NVDA: 'nvidia.com', JPM: 'jpmorganchase.com',
+  JNJ: 'jnj.com', V: 'visa.com', WMT: 'walmart.com', PG: 'pg.com',
+  UNH: 'uhg.com', MA: 'mastercard.com', HD: 'homedepot.com', BAC: 'bankofamerica.com',
+  XOM: 'exxonmobil.com', PFE: 'pfizer.com', ABBV: 'abbvie.com', CVX: 'chevron.com',
+  KO: 'coca-colacompany.com', PEP: 'pepsico.com', AVGO: 'broadcom.com', COST: 'costco.com',
+  MRK: 'merck.com', TMO: 'thermofisher.com', ACN: 'accenture.com', MCD: 'mcdonalds.com',
+  ABT: 'abbott.com', DHR: 'danaher.com', NEE: 'nexteraenergy.com', LIN: 'linde.com',
+  TXN: 'ti.com', PM: 'pmi.com', ORCL: 'oracle.com', CRM: 'salesforce.com',
+  NFLX: 'netflix.com', ADBE: 'adobe.com', QCOM: 'qualcomm.com', AMD: 'amd.com',
+  HON: 'honeywell.com', UPS: 'ups.com', LOW: 'lowes.com', AMGN: 'amgen.com',
+  IBM: 'ibm.com', GS: 'goldmansachs.com', CAT: 'caterpillar.com', BA: 'boeing.com',
+  GE: 'ge.com', 'BINANCE:BTCUSDT': 'bitcoin.org',
+  INFY: 'infosys.com', WIT: 'wipro.com', IBN: 'icicibank.com', HDB: 'hdfcbank.com'
+};
+
+const REGION_MAP = {
+  ACN: 'Europe', LIN: 'Europe', PM: 'Europe',
+  'BINANCE:BTCUSDT': 'Crypto',
+  INFY: 'India', WIT: 'India', IBN: 'India', HDB: 'India'
+};
+
+const getRegion = (symbol) => REGION_MAP[symbol] || 'USA';
+
+const StockLogo = ({ symbol, isPositive }) => {
+  const [error, setError] = useState(false);
+  const domain = DOMAIN_MAP[symbol];
+
+  const fallback = (
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-inner flex-shrink-0"
+      style={{
+        background: isPositive ? '#064e3b' : '#450a0a',
+        color: isPositive ? '#34d399' : '#f87171',
+        border: `1px solid ${isPositive ? '#065f46' : '#7f1d1d'}`
+      }}
+    >
+      {symbol.slice(0, 2)}
+    </div>
+  );
+
+  if (!domain || error) return fallback;
+
+  return (
+    <img 
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+      alt={`${symbol} logo`}
+      className="w-8 h-8 rounded-full bg-white object-contain border border-gray-700/50 flex-shrink-0 shadow-sm"
+      onError={() => setError(true)}
+    />
+  );
+};
+
+function StockList({ liveStocks, globalSearch, currency = 'USD' }) {
   const [stocks, setStocks] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedStock, setSelectedStock] = useState(null)
+  const [regionFilter, setRegionFilter] = useState('All')
 
   useEffect(() => {
     fetchStocks()
@@ -55,9 +111,11 @@ function StockList({ liveStocks, globalSearch }) {
     )
   }
 
-  const filteredStocks = stocks.filter(stock => 
-    !globalSearch || stock.symbol.toLowerCase().includes(globalSearch.toLowerCase())
-  )
+  const filteredStocks = stocks.filter(stock => {
+    const matchesSearch = !globalSearch || stock.symbol.toLowerCase().includes(globalSearch.toLowerCase());
+    const matchesRegion = regionFilter === 'All' || getRegion(stock.symbol) === regionFilter;
+    return matchesSearch && matchesRegion;
+  });
 
   return (
     <>
@@ -71,6 +129,21 @@ function StockList({ liveStocks, globalSearch }) {
             <span className="text-gray-500 text-sm font-mono">
               {filteredStocks.length} Assets
             </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-gray-500" />
+            <select
+              value={regionFilter}
+              onChange={(e) => setRegionFilter(e.target.value)}
+              className="bg-[#111827] border border-gray-800 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-green-500/50 transition-all cursor-pointer font-medium"
+            >
+              <option value="All">All Regions</option>
+              <option value="USA">USA</option>
+              <option value="Europe">Europe</option>
+              <option value="India">India</option>
+              <option value="Crypto">Crypto</option>
+            </select>
           </div>
         </div>
 
@@ -123,16 +196,7 @@ function StockList({ liveStocks, globalSearch }) {
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-inner"
-                              style={{
-                                background: isPositive ? '#064e3b' : '#450a0a',
-                                color: isPositive ? '#34d399' : '#f87171',
-                                border: `1px solid ${isPositive ? '#065f46' : '#7f1d1d'}`
-                              }}
-                            >
-                              {stock.symbol.slice(0, 2)}
-                            </div>
+                            <StockLogo symbol={stock.symbol} isPositive={isPositive} />
                             <span className="text-gray-200 font-bold text-sm tracking-wide group-hover:text-white transition-colors">
                               {stock.symbol}
                             </span>
@@ -140,7 +204,7 @@ function StockList({ liveStocks, globalSearch }) {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <span className="text-white text-sm font-mono font-medium">
-                            ${stock.currentPrice?.toFixed(2) ?? '--'}
+                            {formatPrice(stock.currentPrice, currency)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
@@ -194,6 +258,7 @@ function StockList({ liveStocks, globalSearch }) {
       {selectedStock && (
         <StockDetailModal
           stock={selectedStock}
+          currency={currency}
           onClose={() => setSelectedStock(null)}
         />
       )}

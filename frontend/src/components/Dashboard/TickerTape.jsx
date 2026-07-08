@@ -1,6 +1,7 @@
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import { formatPrice } from '../../utils/currency'
 
-function TickerTape({ liveStocks }) {
+function TickerTape({ liveStocks, currency = 'USD' }) {
   // Get top 15 stocks to scroll (if we don't have enough, duplicate to fill)
   const symbols = Object.keys(liveStocks)
   if (symbols.length === 0) {
@@ -33,7 +34,7 @@ function TickerTape({ liveStocks }) {
               return (
                 <div key={`${blockId}-${stock.symbol}-${i}`} className="flex items-center gap-3 px-6 border-r border-gray-800">
                   <span className="text-gray-300 font-semibold text-sm">{stock.symbol}</span>
-                  <span className="text-white font-mono text-sm">${stock.currentPrice?.toFixed(2) ?? '--'}</span>
+                  <span className="text-white font-mono text-sm">{formatPrice(stock.currentPrice, currency)}</span>
                   <div className={`flex items-center gap-1 text-xs font-mono ${color}`}>
                     {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                     {isPositive ? '+' : ''}{stock.priceChangePercent?.toFixed(2) ?? '--'}%

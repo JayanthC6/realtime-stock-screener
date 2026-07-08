@@ -1,4 +1,4 @@
-# 📈 Real-Time Stock Screener
+# 📈 FinVeda (Real-Time Stock Screener)
 
 A full-stack application that streams live stock prices from Finnhub's WebSocket API, computes RSI in real time, and alerts users when their configured conditions are triggered.
 
@@ -166,7 +166,9 @@ Test coverage:
 
 ## 📊 Key Features
 
-- **Live WebSocket feed** — Single Finnhub WebSocket connection streams 50 large-cap stocks and cryptocurrencies (e.g. BTCUSDT) for 24/7 testing
+- **Live WebSocket feed** — Single Finnhub WebSocket connection streams 50+ global large-cap stocks (US, Europe, India ADRs) and cryptocurrencies for 24/7 testing
+- **Currency Conversion** — Instantly view live prices and charts in USD, EUR, INR, GBP, or JPY across the entire dashboard
+- **Region Filtering** — Filter stocks by USA, Europe, India, or Crypto directly from the market overview
 - **Real-Time Frontend Search** — Instantly filter through live stocks and crypto without reloading
 - **RSI-14 Calculation** — Computed from the last 15 DB ticks per symbol (survives restarts)
 - **Intraday High/Low/Open** — Tracked per symbol from tick data

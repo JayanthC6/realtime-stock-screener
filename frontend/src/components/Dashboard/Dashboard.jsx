@@ -8,12 +8,14 @@ import TickerTape from './TickerTape'
 import { TrendingUp, LogOut, BarChart2, Bell, Activity, Search, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
+import logo from '../../assets/logo.png'
 
 function Dashboard() {
   const { user, logout } = useAuth()
   const { liveStocks, screenerUpdates } = useWebSocket()
   const [activeTab, setActiveTab] = useState('stocks')
   const [globalSearch, setGlobalSearch] = useState('')
+  const [currency, setCurrency] = useState('USD')
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -33,15 +35,17 @@ function Dashboard() {
 
   return (
     <div className="flex h-screen bg-[#0B0E14] overflow-hidden text-gray-300">
-      
+
       {/* LEFT SIDEBAR */}
       <aside className="w-64 bg-[#0a0a0a] border-r border-gray-800 flex flex-col hidden md:flex">
         <div className="h-16 flex items-center px-6 border-b border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="bg-green-500 p-1.5 rounded-lg shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-              <TrendingUp className="text-white" size={18} />
-            </div>
-            <span className="text-white font-bold tracking-wide">StockScreener</span>
+            <img
+              src={logo}
+              alt="StockScreener Logo"
+              className="w-10 h-10 object-contain rounded-lg shadow-[0_0_15px_rgba(34,197,94,0.15)]"
+            />
+            <span className="text-white font-bold tracking-wide text-lg">FinVeda</span>
           </div>
         </div>
 
@@ -53,11 +57,10 @@ function Dashboard() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
                     ? 'bg-green-500/10 text-green-400 font-semibold'
                     : 'text-gray-400 hover:bg-gray-900 hover:text-white'
-                }`}
+                  }`}
               >
                 <Icon size={18} />
                 {tab.label}
@@ -79,10 +82,10 @@ function Dashboard() {
 
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-w-0">
-        
+
         {/* TOP HEADER */}
         <header className="h-16 bg-[#0a0a0a] border-b border-gray-800 flex items-center justify-between px-6 shrink-0">
-          
+
           {/* Global Search */}
           <div className="relative w-96 hidden sm:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
@@ -97,6 +100,20 @@ function Dashboard() {
 
           {/* Right side tools */}
           <div className="flex items-center gap-6">
+
+            {/* Currency Selector */}
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="bg-[#111827] border border-gray-800 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-green-500/50 transition-all cursor-pointer font-mono font-bold"
+            >
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="JPY">JPY (¥)</option>
+            </select>
+
             <div className="flex items-center gap-2">
               <div className="relative flex h-2.5 w-2.5">
                 {isConnected && (
@@ -121,13 +138,13 @@ function Dashboard() {
         </header>
 
         {/* TICKER TAPE */}
-        <TickerTape liveStocks={liveStocks} />
+        <TickerTape liveStocks={liveStocks} currency={currency} />
 
         {/* SCROLLABLE VIEW AREA */}
         <div className="flex-1 overflow-auto p-6 scroll-smooth">
           <div className="max-w-7xl mx-auto">
             {activeTab === 'stocks' && (
-              <StockList liveStocks={liveStocks} globalSearch={globalSearch} />
+              <StockList liveStocks={liveStocks} globalSearch={globalSearch} currency={currency} />
             )}
             {activeTab === 'screener' && (
               <Screener screenerUpdates={screenerUpdates} />

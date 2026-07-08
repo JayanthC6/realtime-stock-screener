@@ -5,10 +5,11 @@ import {
 } from 'recharts'
 import { X, TrendingUp, TrendingDown, Activity } from 'lucide-react'
 import { getStockHistory } from '../../services/api'
+import { formatPrice } from '../../utils/currency'
 
 const MAX_TICKS = 60 // keep last 60 price points
 
-function StockDetailModal({ stock, onClose }) {
+function StockDetailModal({ stock, currency = 'USD', onClose }) {
   const [priceHistory, setPriceHistory] = useState([])
   const prevPrice = useRef(null)
 
@@ -57,15 +58,15 @@ function StockDetailModal({ stock, onClose }) {
   const padding = (maxPrice - minPrice) * 0.1 || 1
 
   const stats = [
-    { label: 'Price',   value: `$${stock.currentPrice?.toFixed(2) ?? '--'}` },
+    { label: 'Price',   value: formatPrice(stock.currentPrice, currency) },
     { label: 'Change',  value: `${isPositive ? '+' : ''}${stock.priceChange?.toFixed(2) ?? '--'} (${stock.priceChangePercent?.toFixed(2) ?? '--'}%)`, color },
     { label: 'Volume',  value: stock.volume?.toLocaleString() ?? '--' },
     { label: 'RSI',     value: stock.rsi?.toFixed(1) ?? '--',
       color: stock.rsi > 70 ? '#ef4444' : stock.rsi < 30 ? '#22c55e' : '#d1d5db' },
     { label: 'P/E',     value: stock.peRatio?.toFixed(1) ?? '--' },
-    { label: 'Open',    value: stock.open   ? `$${stock.open.toFixed(2)}`   : '--' },
-    { label: 'High',    value: stock.high   ? `$${stock.high.toFixed(2)}`   : '--' },
-    { label: 'Low',     value: stock.low    ? `$${stock.low.toFixed(2)}`    : '--' },
+    { label: 'Open',    value: stock.open   ? formatPrice(stock.open, currency)   : '--' },
+    { label: 'High',    value: stock.high   ? formatPrice(stock.high, currency)   : '--' },
+    { label: 'Low',     value: stock.low    ? formatPrice(stock.low, currency)    : '--' },
   ]
 
   return (
@@ -101,7 +102,7 @@ function StockDetailModal({ stock, onClose }) {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <div className="text-white text-2xl font-bold">
-                ${stock.currentPrice?.toFixed(2) ?? '--'}
+                {formatPrice(stock.currentPrice, currency)}
               </div>
               <div className={`flex items-center justify-end gap-1 text-sm`} style={{ color }}>
                 {isPositive ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
@@ -143,7 +144,7 @@ function StockDetailModal({ stock, onClose }) {
                 <YAxis
                   domain={[minPrice - padding, maxPrice + padding]}
                   tick={{ fill: '#6b7280', fontSize: 10 }}
-                  tickFormatter={v => `$${v.toFixed(0)}`}
+                  tickFormatter={v => formatPrice(v, currency).replace(/\.\d+$/, '')} // remove decimals for axis
                   tickLine={false}
                   axisLine={false}
                   width={52}
@@ -152,7 +153,7 @@ function StockDetailModal({ stock, onClose }) {
                   contentStyle={{ background: '#111827', border: '1px solid #374151', borderRadius: 8 }}
                   labelStyle={{ color: '#9ca3af', fontSize: 11 }}
                   itemStyle={{ color, fontWeight: 600 }}
-                  formatter={v => [`$${v.toFixed(2)}`, 'Price']}
+                  formatter={v => [formatPrice(v, currency), 'Price']}
                 />
                 <Area
                   type="monotone"
