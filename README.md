@@ -1,10 +1,10 @@
-# 📈 FinVeda (Real-Time Stock Screener)
+# FinVeda (Real-Time Stock Screener)
 
 A full-stack application that streams live stock prices from Finnhub's WebSocket API, computes RSI in real time, and alerts users when their configured conditions are triggered.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -58,7 +58,7 @@ A full-stack application that streams live stock prices from Finnhub's WebSocket
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -74,7 +74,7 @@ A full-stack application that streams live stock prices from Finnhub's WebSocket
 
 ---
 
-## ⚙️ Setup
+## Setup
 
 ### Prerequisites
 - Java 17+
@@ -126,7 +126,7 @@ Frontend starts on **http://localhost:5173**
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
@@ -150,7 +150,7 @@ http://localhost:8081/swagger-ui.html
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 ```bash
 cd backend
@@ -164,7 +164,7 @@ Test coverage:
 
 ---
 
-## 📊 Key Features
+## Key Features
 
 - **Live WebSocket feed** — Single Finnhub WebSocket connection streams 50+ global large-cap stocks (US, Europe, India ADRs) and cryptocurrencies for 24/7 testing
 - **Currency Conversion** — Instantly view live prices and charts in USD, EUR, INR, GBP, or JPY across the entire dashboard
@@ -181,7 +181,7 @@ Test coverage:
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 realtime-stock-screener/
